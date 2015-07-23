@@ -9,16 +9,51 @@ require_relative "coordinate"
 		when centering colored strings.
 =end
 
+module FormatHelper
+
+	def full_screen(format, background=nil)
+		format_height = format.rows > window_height-2 ? format.rows + 4 : window_height
+		format_width = format.columns > window_width - 2 ? format.columns + 4 : window_width
+		screen_fill = Formatter.new(format_height, format_width, background)
+		screen_fill.add_child(:center, format)
+		screen_fill
+	end
+
+	def window_width
+		IO.console.winsize[1]
+	end
+
+	def window_height
+		IO.console.winsize[0]
+	end
+
+end
+
 class Formatter
-	attr_reader :rows, :columns, :format, :map
+	include FormatHelper
+	attr_reader :rows, :columns, :format, :map, :children
+	attr_accessor :parent
 
 	def initialize(rows, columns, default_background=nil)
 		@rows = rows
 		@columns = columns
 		@default_background = default_background
-
 		@format = Array.new(@rows) {Array.new(@columns) {" "}}
 		@map = Array.new(@rows) {Array.new(@columns) {{value: " ", color: nil, background: default_background}}}
+		
+		@parent = nil
+		@children = []
+	end
+
+	def add_child(pos, child)
+		raise(ArgumentError, "Child must be of class Formatter") if child.class != Formatter
+		raise(ArgumentError, "Child must be smaller than the parent") if self < child
+		pos = center.to_coord - (child.size.to_coord/2) if pos == :center
+		pos = [0, 0] if pos == :first
+		pos = pos.class == Coordinate ? pos : pos.to_coord
+		child.parent = self
+		@children << [child, pos]
+		update
 	end
 
 	def set_background(background)
@@ -30,10 +65,6 @@ class Formatter
 		pos = pos.class == Coordinate ? pos.to_a : pos
 		return nil if pos[1] > @columns-1 || pos[0] > @rows-1 
 		map ? @map[pos[0]][pos[1]] : @format[pos[0]][pos[1]]
-	end
-
-	def get_direction(pos, direction)
-
 	end
 
 	def set_space(pos, hash)
@@ -52,17 +83,20 @@ class Formatter
 	def set_direction(pos, direction, hash)
 		direction = direction.class == Coordinate ? direction : direction.to_coord
 		pos = pos.class == Coordinate ? pos : pos.to_coord
+		string = hash[:value] ? hash[:value] : nil#if hash[:value]
 		char_index = 0
 		while get_space(pos)
+			hash[:value] = string[char_index] if hash[:value]
 			set_space(pos, hash)
 			pos += direction
 			char_index += 1
-			char_index = 0 if char_index >= hash[:value].length if hash[:value]
+			char_index = 0 if char_index >= string.length if hash[:value]
 		end
 	end
 
 	def to_s
 		formatted_str = ''
+		update
 		@format.each {|line| formatted_str += line.join + "\n"}
 		formatted_str
 	end
@@ -80,9 +114,32 @@ class Formatter
 		@rows.times {|i| @columns.times {|j| yield(@map[i][j], [i, j])}}
 	end
 
-	private
+	def size
+		[@rows, @columns]
+	end
+
+	def center
+		[@rows/2, @columns/2]
+	end
+
+	def <(format)
+		raise(ArgumentError, "Argument must be of class Formatter") if format.class != self.class
+		size[0] < format.size[0] && size[1] < format.size[1]
+	end
+
+	def valid_pos?(pos)
+		get_space(pos) != nil
+	end
 
 	def update
+		@children.each do |child|
+			pos = child[1]
+			child[0].update if child[0].children.length > 0
+			child[0].each do |space, space_pos|
+				mapped_pos = pos + space_pos
+				@map[mapped_pos.row][mapped_pos.column] = space if valid_pos?(mapped_pos)
+			end
+		end
 		@rows.times {|row| @columns.times do |column|
 			@format[row][column] = @map[row][column][:value]
 			@format[row][column] = @format[row][column].colorize(color: @map[row][column][:color]) if @map[row][column][:color]
@@ -92,7 +149,20 @@ class Formatter
 	end
 end
 
-#f = Formatter.new(3, 3, :black)
+#include FormatHelper
+#f1 = Formatter.new(20, 50, :black)
+#f2 = full_screen(f1, :white)
+#f1.set_direction([0,0],[1,1], background: :green)
+#puts f2.to_s
+#f2 = Formatter.new(25, 25, :red)
+#f3 = Formatter.new(10, 10, :blue)
+#f2.set_direction([0,0],[0,1], value:"Aha", color: :blue, background: :white)
+#f2.set_direction([0,0],[1,1], value:"Bab", color: :yellow, background: :green)
+#f2.add_child(:center, f3)
+#f3.set_direction([0,0], [1,1], background: :yellow)
+#puts f2.to_s
+#f1.add_child(:center, f2)
+#puts f1.to_s
 #f.set_space([0,0], value: "X")
 #puts f.to_s
 #p f.map[0][0]

@@ -1,16 +1,26 @@
 require_relative "spec_helper"
- 
+
+describe FormatHelper do 
+
+	before :each do
+		@format = FormatHelper
+		@f1 = Formatter.new(5, 5)
+	end
+
+
+end
+
 describe Formatter do
+
+	before :each do
+		@f = Formatter.new(10, 3)
+	end
 
 	it "should be able to initialize with a default background" do 
 		f = Formatter.new(10, 3, :black)
 		f.each do |space|
 			expect(space[:background]).to eq(:black)
 		end
-	end
-
-	before :each do
-		@f = Formatter.new(10, 3)
 	end
 
 	describe "#columns" do
@@ -22,6 +32,20 @@ describe Formatter do
 	describe "#rows" do
 		it "should return its number of rows" do
 			expect(@f.rows).to eq(10)
+		end
+	end
+
+	describe "#size" do
+		it "should return an array of its size" do
+			expect(@f.size).to eq([10,3])
+		end
+	end
+
+	describe "#<" do
+		it "should know if another format is smaller" do
+			f2 = Formatter.new(5, 2)
+			expect(f2 < @f).to be true
+			expect(@f < f2).to be false
 		end
 	end
 
@@ -70,7 +94,12 @@ describe Formatter do
 	describe "#get_space" do 
 		it "should return the space at the position" do 
 			@f[0][0] = "l"
-			expect(@f.get_space([0,0])).to equal(@f[0][0])
+			expect(@f.get_space([0,0])).to eq(@f[0][0])
+		end
+
+		it "should take a coordinate class as an argument" do
+			@f[0][0] = "h"
+			expect(@f.get_space(Coordinate.new(0, 0))).to eq(@f[0][0])
 		end
 
 		it "should return nil for spaces out of range" do
@@ -80,6 +109,11 @@ describe Formatter do
 	end
 
 	describe "#set_space" do
+		it "should take a coordinate class as an argument" do
+			@f.set_space(Coordinate.new(0, 0), value: "X")
+			expect(@f[0][0]).to eq("X")
+		end
+
 		it "should set the value of a space only with a single character" do
 			@f.set_space([0,0], value: "X")
 			expect(@f[0][0]).to eq("X")
@@ -142,9 +176,17 @@ describe Formatter do
 		end
 	end
 
-	describe "#get_direction" do
-		it "should return a string of characters in that direction" do
-			
+	describe "#add_child" do
+		it "should append a child and all its childrens formats" do
+			f2 = Formatter.new(5,3,:blue)
+			f3 = Formatter.new(2,3,:yellow)
+			f2.add_child([0,0], f3)
+			@f.add_child([0,0], f2)
+			f3.set_direction([0,0], [0,1], value: "X", color: :red)
+			@f.map[0].each do |format| 
+				expect(format).to eq({value: "X", color: :red, background: :yellow})
+			end
+			@f.map[2].each {|format| expect(format).to eq({value: " ", color: nil, background: :blue})}
 		end
 	end
 end

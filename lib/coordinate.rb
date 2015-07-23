@@ -29,4 +29,30 @@ class Coordinate
 			raise(ArgumentError, "Coordinate must be of class coordinate, array, or fixnum")
 		end
 	end
+
+	def -(coordinate)
+		if coordinate.class == self.class
+			Coordinate.new(@row - coordinate.row, @column - coordinate.column)
+		elsif coordinate.class == Array
+			raise(ArgumentError, "Array must be of length 2") if coordinate.length != 2
+			Coordinate.new(@row - coordinate[0], @column - coordinate[1])
+		elsif coordinate.class == Fixnum
+			Coordinate.new(@row - coordinate, @column - coordinate)
+		else
+			raise(ArgumentError, "Coordinate must be of class coordinate, array, or fixnum")
+		end
+	end
+
+	def /(coordinate)
+		if coordinate.class == self.class
+			Coordinate.new(@row / coordinate.row, @column / coordinate.column)
+		elsif coordinate.class == Array
+			raise(ArgumentError, "Array must be of length 2") if coordinate.length != 2
+			Coordinate.new(@row / coordinate[0], @column / coordinate[1])
+		elsif coordinate.class == Fixnum
+			Coordinate.new(@row / coordinate, @column / coordinate)
+		else
+			raise(ArgumentError, "Coordinate must be of class coordinate, array, or fixnum")
+		end
+	end
 end
