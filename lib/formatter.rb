@@ -53,7 +53,7 @@ class Formatter
 		pos = pos.class == Coordinate ? pos : pos.to_coord
 		child.parent = self
 		@children << [child, pos]
-		update
+		map_format(pos, child)
 	end
 
 	def set_background(background)
@@ -61,10 +61,10 @@ class Formatter
 		each {|space, pos| set_space(pos, background: background)}
 	end
 
-	def get_space(pos, map=false)
+	def get_space(pos)
 		pos = pos.class == Coordinate ? pos.to_a : pos
 		return nil if pos[1] > @columns-1 || pos[0] > @rows-1 
-		map ? @map[pos[0]][pos[1]] : @format[pos[0]][pos[1]]
+		@map[pos[0]][pos[1]]
 	end
 
 	def set_space(pos, hash)
@@ -96,21 +96,21 @@ class Formatter
 
 	def to_s
 		formatted_str = ''
-		update
+		@rows.times {|row| @columns.times do |column|
+			@format[row][column] = @map[row][column][:value]
+			@format[row][column] = @format[row][column].colorize(color: @map[row][column][:color]) if @map[row][column][:color]
+			@format[row][column] = @format[row][column].colorize(background: @map[row][column][:background]) if @map[row][column][:background]
+			@format[row][column] = @format[row][column].uncolorize if @map[row][column][:color] == nil and @map[row][column][:background] == nil
+		end}
 		@format.each {|line| formatted_str += line.join + "\n"}
 		formatted_str
 	end
 
 	def [](index)
-		@format[index]
+		@map[index]
 	end
 
-	def []=(index, array)
-		raise(IndexError, "Index out of range") if @format[index] == nil || array.length != @columns
-		@format[index] = array
-	end
-
-	def each #I want this to yield the map space
+	def each
 		@rows.times {|i| @columns.times {|j| yield(@map[i][j], [i, j])}}
 	end
 
@@ -131,38 +131,44 @@ class Formatter
 		get_space(pos) != nil
 	end
 
+	def map_format(pos, format)
+		format.each do |space, space_pos|
+			mapped_pos = pos + space_pos
+			@map[mapped_pos.row][mapped_pos.column] = space if valid_pos?(mapped_pos)
+		end
+	end
+
 	def update
 		@children.each do |child|
 			pos = child[1]
-			child[0].update if child[0].children.length > 0
 			child[0].each do |space, space_pos|
 				mapped_pos = pos + space_pos
 				@map[mapped_pos.row][mapped_pos.column] = space if valid_pos?(mapped_pos)
 			end
 		end
-		@rows.times {|row| @columns.times do |column|
-			@format[row][column] = @map[row][column][:value]
-			@format[row][column] = @format[row][column].colorize(color: @map[row][column][:color]) if @map[row][column][:color]
-			@format[row][column] = @format[row][column].colorize(background: @map[row][column][:background]) if @map[row][column][:background]
-			@format[row][column] = @format[row][column].uncolorize if @map[row][column][:color] == nil and @map[row][column][:background] == nil
-		end}
+		@parent.update if @parent != nil
 	end
 end
 
 #include FormatHelper
 #f1 = Formatter.new(20, 50, :black)
+#f1[0]
 #f2 = full_screen(f1, :white)
 #f1.set_direction([0,0],[1,1], background: :green)
 #puts f2.to_s
 #f2 = Formatter.new(25, 25, :red)
 #f3 = Formatter.new(10, 10, :blue)
-#f2.set_direction([0,0],[0,1], value:"Aha", color: :blue, background: :white)
-#f2.set_direction([0,0],[1,1], value:"Bab", color: :yellow, background: :green)
 #f2.add_child(:center, f3)
 #f3.set_direction([0,0], [1,1], background: :yellow)
 #puts f2.to_s
+#f2.set_direction([0,0],[0,1], value:"Aha", color: :black, background: :white)
+#f2.set_direction([0,0],[1,1], value:"Bab", color: :white, background: :green)
 #f1.add_child(:center, f2)
-#puts f1.to_s
+#f1.set_direction([0,0],[1,1], background: :green)
+#f3.set_direction([0,0], [1,1], background: :black)
+#f4 = full_screen(f1, :black)
+#f3.set_direction([0,0],[1,0], background: :white)
+#puts f4.to_s
 #f.set_space([0,0], value: "X")
 #puts f.to_s
 #p f.map[0][0]

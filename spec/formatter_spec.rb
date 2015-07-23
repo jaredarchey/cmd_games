@@ -51,23 +51,13 @@ describe Formatter do
 
 	describe "#[]" do
 		it "should return the row if indexed" do 
-			@f[0][0] = "1"
-			expect(@f[0]).to eq(['1', ' ', ' '])
-			expect(@f[0][0]).to eq("1")
+			expect(@f[0].length).to eq(3)
+			@f[0].each {|space| expect(space).to eq({value: " ", color: nil, background: nil})}
 		end
 
 		it "should return nil if index is not assigned" do
 			expect(@f[20]).to eq(nil)
 			expect(@f[-20]).to eq(nil)
-		end
-	end
-
-	describe "#[]=" do
-		it "should assign the row a new array only of length columns" do 
-			@f[0] = [1, 2, 3]
-			expect(@f[0]).to eq([1, 2, 3])
-			expect { @f[0] = [1, 2, 3, 4] }.to raise_error(IndexError)
-			expect { @f[0] = [1, 2] }.to raise_error(IndexError)
 		end
 	end
 
@@ -93,8 +83,8 @@ describe Formatter do
 
 	describe "#get_space" do 
 		it "should return the space at the position" do 
-			@f[0][0] = "l"
-			expect(@f.get_space([0,0])).to eq(@f[0][0])
+			@f[0][0] = {value: "l", color: :blue, background: :black}
+			expect(@f.get_space([0,0])).to eq({value: "l", color: :blue, background: :black})
 		end
 
 		it "should take a coordinate class as an argument" do
@@ -110,33 +100,30 @@ describe Formatter do
 
 	describe "#set_space" do
 		it "should take a coordinate class as an argument" do
-			@f.set_space(Coordinate.new(0, 0), value: "X")
-			expect(@f[0][0]).to eq("X")
+			@f.set_space(Coordinate.new(0, 0), value: "X", color: :red, background: :black)
+			expect(@f[0][0]).to eq({value: "X", color: :red, background: :black})
 		end
 
 		it "should set the value of a space only with a single character" do
-			@f.set_space([0,0], value: "X")
-			expect(@f[0][0]).to eq("X")
+			@f.set_space([0,0], value: "X", color: :red, background: nil)
+			expect(@f[0][0]).to eq({value: "X", color: :red, background: nil})
 			expect{ @f.set_space([0,0], value: "XY") }.to raise_error(ArgumentError)
 		end
 
 		it "should set the foreground of a space" do 
 			@f.set_space([0,0], color: :red)
 			expect(@f.map[0][0][:color]).to eq(:red)
-			expect(@f[0][0].colorized?).to be true
 		end
 
 		it "should set the background of a space" do
 			@f.set_space([0,0], background: :red)
 			expect(@f.map[0][0][:background]).to eq(:red)
-			expect(@f[0][0].colorized?).to be true
 		end
 
 		it "should uncolorize the space" do 
-			@f.set_space([0,0], value: "X", color: :red)
+			@f.set_space([0,0], value: "X", color: :red, background: :black)
 			@f.set_space([0,0], uncolor: :true)
-			expect(@f.get_space([0,0]).colorized?).to be false
-			expect(@f[0][0]).to eq("X")
+			expect(@f[0][0]).to eq({value: "X", color: nil, background: nil})
 		end
 	end
 
@@ -148,31 +135,13 @@ describe Formatter do
 	end
 
 	describe "#set_direction" do 
-		it "should set the value of all spaces in a direction" do 
-			@f.set_direction([0,0], [0,1], value: "X")
-			@f.columns.times {|column| expect(@f[0][column]).to eq("X")}
-			@f.set_direction([0,0], [1,0], value: "Y")
-			@f.rows.times {|row| expect(@f[row][0]).to eq("Y")}
-			@f.set_direction([0,0], [1,1], value: "Z")
-			@f.columns.times {|column| expect(@f[column][column]).to eq("Z")}
-		end
-
-		it "should set the foreground color of all spaces in direction" do
-			@f.set_direction([0,0], [0,1], value: "X", color: :red)
-			@f.columns.times {|column| expect(@f[0][column].colorized?).to be true}
-			@f.set_direction([0,0], [1,0], value: "Y", color: :red)
-			@f.rows.times {|row| expect(@f[row][0].colorized?).to be true}
-			@f.set_direction([0,0], [1,1], value: "Z", color: :red)
-			@f.columns.times {|column| expect(@f[column][column].colorized?).to be true}
-		end
-
-		it "should set the background color of all spaces in direction" do 
-			@f.set_direction([0,0], [0,1], background: :red)
-			@f.columns.times {|column| expect(@f[0][column].colorized?).to be true}
-			@f.set_direction([0,0], [1,0], background: :red)
-			@f.rows.times {|row| expect(@f[row][0].colorized?).to be true}
-			@f.set_direction([0,0], [1,1], background: :red)
-			@f.columns.times {|column| expect(@f[column][column].colorized?).to be true}
+		it "should set the format of all spaces in a direction" do 
+			@f.set_direction([0,0], [0,1], value: "X", background: :black)
+			@f.columns.times {|column| expect(@f[0][column]).to eq({value: "X", color: nil, background: :black})}
+			@f.set_direction([0,0], [1,0], value: "Y", color: :red, background: :blue)
+			@f.rows.times {|row| expect(@f[row][0]).to eq({value: "Y", color: :red, background: :blue})}
+			@f.set_direction([0,0], [1,1], value: "Z", uncolor: true)
+			@f.columns.times {|column| expect(@f[column][column]).to eq({value: "Z", color: nil, background: nil})}
 		end
 	end
 
