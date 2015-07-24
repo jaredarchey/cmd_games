@@ -1,32 +1,28 @@
 require_relative "spec_helper"
 
 describe Space do
-	it "should initialize with a pos" do
-		space = Space.new([0,0])
-		expect(space.pos).to eq([0,0])
-	end
 
 	it "should optionally initialize with a value" do 
-	 	space = Space.new([0,0], "X")
+	 	space = Space.new("X")
 	 	expect(space.value).to eq("X")
-	 	expect { Space.new([0,0], "XY") }.to raise_error(ArgumentError)
+	 	expect { Space.new("XY") }.to raise_error(ArgumentError)
 	end
 
 	it "should optionally initialize with formatting" do 
-	 	space = Space.new([0,0], " ", color: :blue, background: :red)
+	 	space = Space.new(" ", color: :blue, background: :red)
 	 	expect(space.format[0][1]).to eq({value: " ", color: :blue, background: :red})
 	end
 
 	describe "#value" do
 	 	it "should return its value" do
-	 		space = Space.new([0,0], "X")
+	 		space = Space.new("X")
 	 		expect(space.value).to eq("X")
 	 	end
 	end
 
 	describe "#set" do
 		before :each do
-			@space = Space.new([0,0], " ")
+			@space = Space.new(" ")
 		end
 
 		it "should set its value" do 
@@ -49,7 +45,7 @@ describe Space do
 
 	describe "#to_s" do
 		it "should be returned as a string" do
-			space = Space.new([0,0], " ") 
+			space = Space.new(" ") 
 		 	expect(space.to_s.class).to eq(String)
 		end
 	end

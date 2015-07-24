@@ -3,6 +3,8 @@ require "rspec"
 require_relative "../lib/formatter"
 require_relative "../lib/coordinate"
 require_relative "../src/space"
+require_relative "../src/board"
+require_relative "../lib/command"
 
 RSpec.configure do |config|
   # Use color in STDOUT

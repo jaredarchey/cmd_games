@@ -6,7 +6,7 @@ class Array
 end
 
 class Coordinate
-	attr_reader :row, :column
+	attr_accessor :row, :column
 
 	def initialize(row, column)
 		@row = row

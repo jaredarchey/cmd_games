@@ -83,14 +83,14 @@ class Formatter
 	def set_direction(pos, direction, hash)
 		direction = direction.class == Coordinate ? direction : direction.to_coord
 		pos = pos.class == Coordinate ? pos : pos.to_coord
-		string = hash[:value] ? hash[:value] : nil#if hash[:value]
+		string = hash[:value] ? hash[:value] : nil
 		char_index = 0
 		while get_space(pos)
 			hash[:value] = string[char_index] if hash[:value]
-			set_space(pos, hash)
+			set_space(pos, hash) if hash[:value]
 			pos += direction
 			char_index += 1
-			char_index = 0 if char_index >= string.length if hash[:value]
+			char_index = 0 if char_index >= string.length && hash[:value] && string.class == Symbol
 		end
 	end
 
@@ -127,6 +127,27 @@ class Formatter
 		size[0] < format.size[0] && size[1] < format.size[1]
 	end
 
+	def child_loc(child)
+		@children.each do |child_arr|
+			return [*child_arr[1].to_a, *(child_arr[1] + child.size).to_a] if child_arr[0] == child
+		end
+		nil
+	end
+
+	def insert_string(pos, format_hash, center=true)
+		format_hash[:value].lines.each do |line|
+			line = line.gsub("\n",'')
+			color = format_hash[:color] ? format_hash[:color] : nil
+			background = format_hash[:background] ? format_hash[:background] : nil
+			if not center
+				set_direction(pos, [0,1], value: line, color: color, background: background)
+			else
+				set_direction(pos.to_coord + [0,((@columns - line.length)/2)], [0,1], value: line, color: color, background: background)
+			end
+			pos[0] += 1
+		end
+	end
+
 	def valid_pos?(pos)
 		get_space(pos) != nil
 	end
@@ -151,9 +172,13 @@ class Formatter
 end
 
 #include FormatHelper
-#f1 = Formatter.new(20, 50, :black)
+#f1 = Formatter.new(10, 20, :black)
 #f1[0]
 #f2 = full_screen(f1, :white)
+#pos = f2.child_loc(f1)
+#p pos
+#f2.insert_string([pos[2]+1,0], {value: "Hello\nJared Archey\nWhat is your name", color: :red, background: :green})
+#puts f2.to_s
 #f1.set_direction([0,0],[1,1], background: :green)
 #puts f2.to_s
 #f2 = Formatter.new(25, 25, :red)

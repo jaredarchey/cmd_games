@@ -2,11 +2,12 @@ require_relative "../lib/formatter"
 
 class Space
 	attr_reader :value, :pos, :format
+	attr_accessor :alt_color
 
-	def initialize(pos, value=" ", format={})
-		@pos = pos
+	def initialize(value=" ", format={})
 		@value = value
 		@format = Formatter.new(1,3, format[:background])
+		@alt_color = :white
 		@format.set_space([0,1], value: @value, color: format[:color])
 	end
 
@@ -18,6 +19,10 @@ class Space
 
 	def to_s
 		@format.to_s
+	end
+
+	def empty?
+		@value == " "
 	end
 end
 

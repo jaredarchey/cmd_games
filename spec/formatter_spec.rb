@@ -135,13 +135,19 @@ describe Formatter do
 	end
 
 	describe "#set_direction" do 
-		it "should set the format of all spaces in a direction" do 
-			@f.set_direction([0,0], [0,1], value: "X", background: :black)
+		it "should repeat if the string is a symbol" do 
+			@f.set_direction([0,0], [0,1], value: :X, background: :black)
 			@f.columns.times {|column| expect(@f[0][column]).to eq({value: "X", color: nil, background: :black})}
-			@f.set_direction([0,0], [1,0], value: "Y", color: :red, background: :blue)
+			@f.set_direction([0,0], [1,0], value: :Y, color: :red, background: :blue)
 			@f.rows.times {|row| expect(@f[row][0]).to eq({value: "Y", color: :red, background: :blue})}
-			@f.set_direction([0,0], [1,1], value: "Z", uncolor: true)
+			@f.set_direction([0,0], [1,1], value: :Z, uncolor: true)
 			@f.columns.times {|column| expect(@f[column][column]).to eq({value: "Z", color: nil, background: nil})}
+		end
+
+		it "should not repeat if the string is a string" do 
+			@f.set_direction([0,0], [0,1], value: "X")
+			expect(@f[0][0][:value]).to eq("X")
+			expect(@f[0][1][:value]).to eq(" ")
 		end
 	end
 
@@ -151,11 +157,31 @@ describe Formatter do
 			f3 = Formatter.new(2,3,:yellow)
 			f2.add_child([0,0], f3)
 			@f.add_child([0,0], f2)
-			f3.set_direction([0,0], [0,1], value: "X", color: :red)
+			f3.set_direction([0,0], [0,1], value: :X, color: :red)
 			@f.map[0].each do |format| 
 				expect(format).to eq({value: "X", color: :red, background: :yellow})
 			end
 			@f.map[2].each {|format| expect(format).to eq({value: " ", color: nil, background: :blue})}
+		end
+	end
+
+	describe "#child_loc" do 
+		it "should know the top-left-bottom-right coordinates of its children" do 
+			f2 = Formatter.new(5,10)
+			@f.add_child([0,0], f2)
+			expect(@f.child_loc(f2)).to eq([0,0,5,10])
+		end
+	end
+
+	describe "#insert_string" do 
+		it "should insert and center a string by default" do 
+			@f.insert_string([0,0], value: "H", color: :red, background: :blue)
+			expect(@f[0][1]).to eq({value: "H", color: :red, background: :blue})
+		end
+
+		it "should optionally align left" do 
+			@f.insert_string([0,0], {value: "H", color: :red, background: :blue}, false)
+			expect(@f[0][0]).to eq({value: "H", color: :red, background: :blue})
 		end
 	end
 end
