@@ -1,4 +1,5 @@
 require_relative "space"
+require_relative "../lib/input_helper"
 require_relative "../lib/formatter"
 require_relative "../lib/command"  
 require_relative "../lib/coordinate"
@@ -13,22 +14,6 @@ class String
 	def indeces_of(char)
 		(0...self.length).find_all { |i| self[i] == char }
 	end
-end
-
-module InputHelper
-	def read_char
-        STDIN.echo = false
-        STDIN.raw!
-        input = STDIN.getc.chr
-        if input == "\e" then
-            input << STDIN.read_nonblock(3) rescue nil
-            input << STDIN.read_nonblock(2) rescue nil
-        end
-        ensure
-        STDIN.echo = true
-        STDIN.cooked!
-        return input
-    end
 end
 
 class Board
@@ -85,13 +70,15 @@ class Board
 
 	def in_a_row(num)
 		each_space do |space, pos|
-			horiz, vert, diag = [], [], []
+			horiz, vert, diag1, diag2 = [], [], [], []
 			num.times {|i| horiz << get_space(pos.to_coord + [0,i]).value if get_space(pos.to_coord + [0,i]) && get_space(pos.to_coord + [0,i]).value != " "}
 			num.times {|i| vert << get_space(pos.to_coord + [i,0]).value if get_space(pos.to_coord + [i,0]) && get_space(pos.to_coord + [i,0]).value != " "}
-			num.times {|i| diag << get_space(pos.to_coord + [i,i]).value if get_space(pos.to_coord + [i,i]) && get_space(pos.to_coord + [i,i]).value != " "}
+			num.times {|i| diag1 << get_space(pos.to_coord + [i,i]).value if get_space(pos.to_coord + [i,i]) && get_space(pos.to_coord + [i,i]).value != " "}
+			num.times {|i| diag2 << get_space(pos.to_coord + [-i,i]).value if get_space(pos.to_coord + [-i,i]) && get_space(pos.to_coord + [-i,i]).value != " "}
 			return horiz.uniq[0] if horiz.length == num && horiz.uniq.length == 1
 			return vert.uniq[0] if vert.length == num && vert.uniq.length == 1
-			return diag.uniq[0] if diag.length == num && diag.uniq.length == 1
+			return diag1.uniq[0] if diag1.length == num && diag1.uniq.length == 1
+			return diag2.uniq[0] if diag2.length == num && diag2.uniq.length == 1
 		end
 		nil
 	end
