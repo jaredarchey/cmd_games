@@ -103,8 +103,8 @@ class Game
 		play if read_char == 'y'
 	end
 
-	def name_player(name)
-		display = name_display("#{name} what is your new name")
+	def user_string(prompt)
+		display = name_display(prompt)
 		puts display.to_s
 		str_row = display.child_loc(display.children[0][0])[2] + 2
 		get_string do |partial|
@@ -120,6 +120,17 @@ class Game
 		screen = Formatter.new(window_height, window_width, :green)
 		screen.add_child(:center, display)
 		screen
+	end
+
+	def select_characters
+		@player1.setter = @characters.select_a_character
+		@player2.setter = @characters.select_a_character
+	end
+
+	def name_players
+		@player1.name = user_string("#{@player1.name} what is your new name")
+		@player2.name = user_string("#{@player2.name} what is your new name")
+		update_display
 	end
 
 	def tally_wins

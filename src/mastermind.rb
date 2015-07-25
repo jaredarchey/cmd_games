@@ -41,7 +41,7 @@ class MasterMind < Game
 	def menu_selection
 		case @main_menu.current_option
 		when 0 then play
-		when 1 then create_code
+		when 1 then @code = create_code
 		end
 	end
 
@@ -77,9 +77,9 @@ class MasterMind < Game
 	end
 
 	def get_str(char) #This is where the game is played
-		@correct = 0
 		@guess += char if 'roygbiv'.include?(char)
 		if @guess.length == @length
+			@correct = 0
 			empty_space = first_empty_space([0,0])
 			pos = nil
 			@board.each_space {|space, space_pos| pos = space_pos if space == empty_space}
@@ -89,6 +89,7 @@ class MasterMind < Game
 			@guess.chars.each_index do |i|
 				@correct += 1 if @code[i] == @guess[i]
 			end
+			@winner = true if @correct == @length
 			@history << @guess
 			@guess = ''
 		end
@@ -107,10 +108,15 @@ class MasterMind < Game
 		display.add_child(:center, summary)
 		display.insert_string([display.child_loc(summary)[2]+2, 0], value: "Play Again? y/n", color: :black)
 		puts display.to_s
+		@history = []
+		@correct = 0
+		@code = random_code
 	end
 
-	def create_code
-
+	def create_code #Can change name player to do this only difference is prompt
+		str = user_string("Enter a #{@length} digit code")
+		create_code if (str.chars.select {|char| 'roygbiv'.include?(char)}).length != @length
+		@code = str
 	end
 
 	def resize
@@ -130,10 +136,7 @@ class MasterMind < Game
 
 	def reset
 		super
-		@history = []
-		@correct = 0
-		@code = random_code
 	end
 end
 
-#MasterMind.new.begin
+MasterMind.new.begin

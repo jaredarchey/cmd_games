@@ -30,17 +30,6 @@ class Connect4 < Game
 		end
 	end
 
-	def name_players
-		@player1.name = name_player(@player1.name)
-		@player2.name = name_player(@player2.name)
-		update_display
-	end
-
-	def select_characters
-		@player1.setter = @characters.select_a_character
-		@player2.setter = @characters.select_a_character
-	end
-
 	def select_space
 		space = first_empty_space(@board.current_space(true))
 		if space
@@ -62,14 +51,6 @@ class Connect4 < Game
 		@display.insert_string([board_loc[2]+1,0], value: string, background: :yellow, color: :red)
 		@display.insert_string([board_loc[2]+3,0], value: "Play Again? y/n")
 		puts @display.to_s
-	end
-
-	def first_empty_space(pos)
-		pos = [@board.rows-1, pos[1]]
-		while @board.get_space(pos) and not @board.get_space(pos).empty?# || pos[0] < 0
-			pos = [pos[0]-1, pos[1]]
-		end
-		@board.get_space(pos) ? @board.get_space(pos) : nil
 	end
 end
 

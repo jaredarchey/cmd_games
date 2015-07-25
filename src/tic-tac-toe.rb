@@ -89,17 +89,6 @@ class TicTacToe < Game
 		@main_menu.change_option_label(4, "Adjust Row to Win: #{@to_win}")
 	end
 
-	def select_characters
-		@player1.setter = @characters.select_a_character
-		@player2.setter = @characters.select_a_character
-	end
-
-	def name_players
-		@player1.name = name_player(@player1.name)
-		@player2.name = name_player(@player2.name)
-		update_display
-	end
-
 	def resize
 		@board.resize(@size, @size)
 		@display = @board.full(:light_magenta)
