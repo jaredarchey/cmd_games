@@ -19,26 +19,29 @@ end
 class Board
 	include FormatHelper
 	include InputHelper
-	attr_reader :board, :format, :rows, :columns, :background, :border_color
+	attr_reader :board, :format, :rows, :columns, :background, :border_color, :interactive
 
-	def initialize(rows, columns, interactive=false)
+	def initialize(rows, columns, interactive="string")
+		@interactive = interactive
 		@background, @border_color = :black, :blue
 		@rows, @columns = rows, columns
-		@current_space = interactive ? Coordinate.new(0,0) : nil
+		@current_space = @interactive != "string" ? Coordinate.new(0,0) : nil
 		new_board
 	end
 
 	def use
 		input = read_char
+		#return input if @interactive == "string"
 		case input
-		when "\e[A" then move_highlight(:up)
-		when "\e[B" then move_highlight(:down)
-		when "\e[C" then move_highlight(:right)
-		when "\e[D" then move_highlight(:left)
-		when "\u0003" then exit
+		when "\e[A" then move_highlight(:up) if @interactive == "2D" || @interactive == "1D_C"
+		when "\e[B" then move_highlight(:down) if @interactive == "2D" || @interactive == "1D_C"
+		when "\e[C" then move_highlight(:right) if @interactive == "2D" || @interactive == "1D_R"
+		when "\e[D" then move_highlight(:left) if @interactive == "2D" || @interactive == "1D_R"
+		when "\u0003" then exit 
 		#when "\u0012" then reset
 		else return input
 		end
+		nil
 	end
 
 	def set_space(pos, format)
@@ -72,11 +75,11 @@ class Board
 		each_space do |space, pos|
 			horiz, vert, diag1, diag2 = [], [], [], []
 			num.times {|i| horiz << get_space(pos.to_coord + [0,i]).value if get_space(pos.to_coord + [0,i]) && get_space(pos.to_coord + [0,i]).value != " "}
-			num.times {|i| vert << get_space(pos.to_coord + [i,0]).value if get_space(pos.to_coord + [i,0]) && get_space(pos.to_coord + [i,0]).value != " "}
+			num.times {|i| vert  << get_space(pos.to_coord + [i,0]).value if get_space(pos.to_coord + [i,0]) && get_space(pos.to_coord + [i,0]).value != " "}
 			num.times {|i| diag1 << get_space(pos.to_coord + [i,i]).value if get_space(pos.to_coord + [i,i]) && get_space(pos.to_coord + [i,i]).value != " "}
 			num.times {|i| diag2 << get_space(pos.to_coord + [-i,i]).value if get_space(pos.to_coord + [-i,i]) && get_space(pos.to_coord + [-i,i]).value != " "}
 			return horiz.uniq[0] if horiz.length == num && horiz.uniq.length == 1
-			return vert.uniq[0] if vert.length == num && vert.uniq.length == 1
+			return vert.uniq[0]  if vert.length == num && vert.uniq.length == 1
 			return diag1.uniq[0] if diag1.length == num && diag1.uniq.length == 1
 			return diag2.uniq[0] if diag2.length == num && diag2.uniq.length == 1
 		end
@@ -104,8 +107,8 @@ class Board
 		new_board
 	end
 
-	def current_space
-		get_space(@current_space.to_a)
+	def current_space(pos=nil)
+		pos ? @current_space.to_a : get_space(@current_space.to_a)
 	end
 
 	def to_s

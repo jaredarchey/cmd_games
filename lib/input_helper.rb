@@ -1,6 +1,17 @@
 require "io/console"
 
 module InputHelper
+
+    def get_string
+        string = ''
+        begin
+            char = read_char
+            string += char if char != "\r"
+            yield(string)
+        end until char == "\r"
+        string
+    end
+
 	def read_char
         STDIN.echo = false
         STDIN.raw!

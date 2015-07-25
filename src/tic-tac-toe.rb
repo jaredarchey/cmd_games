@@ -7,15 +7,18 @@ class TicTacToe < Game
 	def initialize
 		@to_win = 3
 		@size = 3
-		super(@size, @size, true)
+		super(@size, @size, "2D")
 		@player1.set_stats(setter: "X", color: :yellow, alt_color: :blue)
 		@player2.set_stats(setter: "O", color: :green, alt_color: :red)
-		@main_menu << ["Play Game", "Select Characters", "Name Players", "Adjust Size: #{@size}", "Adjust Row to Win: #{@to_win}"]
-		@main_menu.show
+		@main_menu << ["Play Game", \
+			           "Select Characters", \
+			           "Name Players", \
+			           "Adjust Size: #{@size}", \
+			           "Adjust Row to Win: #{@to_win}"]
 	end
 
 	def update_display
-		board_loc = @display.child_loc(@board.format)
+		board_loc = super
 		@display.set_direction([board_loc[2],0], [0,1], value: :" ")
 		@display.set_direction([2,0], [0,1], value: :" ")
 		@display.set_direction([3,0], [0,1], value: :" ")
@@ -24,47 +27,48 @@ class TicTacToe < Game
 		@display.insert_string([board_loc[2]+1,0], value: "#{@turn.name} it is your turn to place a #{@turn.setter}", color: :white, background: :red)
 	end
 
-	def begin
-		quit = false
-		while not quit
-			@main_menu.show
-			input = @main_menu.use
-			case input
-			when 'q' then exit
-			when 'b' then quit = true
-			#when 'l' then load
-			when "\e[C" then adjust_option(:right)
-			when "\e[D" then adjust_option(:left)
-			when " " then menu_selection
-			when "\r" then menu_selection
-			end
+	def menu_selection
+		case @main_menu.current_option
+		when 0 then play
+		when 1 then select_characters
+		when 2 then name_players
 		end
 	end
 
-	def play
-		quit = false
-		while not quit
-			update_display
-			puts @display.to_s
-			input = @board.use
-			case input
-			when 'q' then exit
-			when 'b' then quit = true
-			when 's' then save
-			when "\r" then set_piece
-			when " " then set_piece
-			end
-			quit = true if @board.empty_spaces == 0 || @winner != nil
+	def menu_commands(input)	
+		case input
+		when "\e[C" then adjust_option(:right)
+		when "\e[D" then adjust_option(:left)
+		end 
+	end
+
+	def select_space
+		space = super
+		if space.empty?
+			space.alt_color = @turn.alt_color
+			space.set(value: @turn.setter, color: @turn.color)
+			@winner = @board.in_a_row(@to_win)
+			change_turn
 		end
-		reset
-		#play
+	end
+
+	def post_game
+		if @winner == nil
+			string = "Cats Game!!!"
+		else
+			string = @winner == @player1.setter ? "Congratulations #{@player1.name} you win!" : "Congratulations #{@player2.name} you win!!"
+		end
+		update_display
+		board_loc = @display.child_loc(@board.format)
+		@display.set_direction([board_loc[2]+1,0], [0,1], value: :" ", background: :light_magenta)
+		@display.insert_string([board_loc[2]+1,0], value: string, background: :yellow, color: :red)
+		@display.insert_string([board_loc[2]+3,0], value: "Play Again? y/n")
+		puts @display.to_s
 	end
 
 	def adjust_option(direction)
-		if @main_menu.current_option == 3 || @main_menu.current_option == 4
-			adjust_size(direction) if @main_menu.current_option == 3
-			adjust_win(direction) if @main_menu.current_option == 4
-		end
+		adjust_size(direction) if @main_menu.current_option == 3
+		adjust_win(direction) if @main_menu.current_option == 4
 	end
 
 	def adjust_size(direction)
@@ -85,43 +89,20 @@ class TicTacToe < Game
 		@main_menu.change_option_label(4, "Adjust Row to Win: #{@to_win}")
 	end
 
-	def menu_selection
-		case @main_menu.current_option
-		when 0 then play
-		when 1 then select_characters
-		when 2 then name_players
-		end
-	end
-
 	def select_characters
 		@player1.setter = @characters.select_a_character
 		@player2.setter = @characters.select_a_character
 	end
 
 	def name_players
-
+		@player1.name = name_player(@player1.name)
+		@player2.name = name_player(@player2.name)
+		update_display
 	end
 
 	def resize
 		@board.resize(@size, @size)
 		@display = @board.full(:light_magenta)
-	end
-
-	def reset
-		@board.reset
-		@display = @board.full(:light_magenta)
-		@winner = nil
-	end
-
-	def set_piece
-		space = @board.current_space
-		if space.empty?
-			space.alt_color = @turn.alt_color
-			space.set(value: @turn.setter, color: @turn.color)
-			winner = @board.in_a_row(@to_win)
-			@winner = winner if winner
-			change_turn
-		end
 	end
 end
 

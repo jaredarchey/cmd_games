@@ -1,5 +1,6 @@
 require_relative "../lib/input_helper"
 require_relative "../lib/formatter"
+require "yaml"
 
 # Need to test with rspec
 
@@ -62,6 +63,14 @@ class Menu
 
 	def show
 		puts @format.to_s
+	end
+
+	def load(game)
+		base_path = "#{File.expand_path File.dirname(__FILE__)}/../data/"
+		if Dir.new(base_path).include?("#{game}.yml")
+			game = YAML::load_file("#{base_path}/#{game}.yml")
+			game[0].play(true)
+		end
 	end
 
 	private

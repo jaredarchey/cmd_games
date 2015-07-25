@@ -1,14 +1,13 @@
 require_relative "../lib/ascii_art"
 require_relative "board"
 require_relative "../lib/formatter"
-#require_relative "../lib/format_helper"
 
 class Selection
 	include Art
 	attr_reader :characters
 
 	def initialize
-		@board = Board.new(7,6, true)
+		@board = Board.new(7,6, "2D")
 		@display = @board.full(:cyan)
 		@characters = get_chars
 		char_index = 0
@@ -25,8 +24,8 @@ class Selection
 			input = @board.use
 			case input
 			when "\r" then character = @board.current_space.value
-			when " " then character = @board.current_space.value
-			when "q" then quit
+			when " " then  character = @board.current_space.value
+			when "q" then break
 			end
 		end
 		character
@@ -56,4 +55,4 @@ class Selection
 	end
 end
 
-#c = Selection.new.select_a_character
+#c = Selection.new.select_a_character("Blah blah blah")

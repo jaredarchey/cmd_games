@@ -54,6 +54,7 @@ class Formatter
 		child.parent = self
 		@children << [child, pos]
 		map_format(pos, child)
+		self
 	end
 
 	def set_background(background)
