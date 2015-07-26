@@ -2,7 +2,7 @@ require_relative "spec_helper"
 
 describe Game do 
 
-	before :each do 
+	before :all do 
 		@g = Game.new(3, 4, "2D")
 	end
 
@@ -19,6 +19,10 @@ describe Game do
 
 		it "should have a main menu" do 
 			expect(@g.main_menu.class).to eq(Menu)
+		end
+
+		it "should have no winner" do 
+			expect(@g.winner).to eq(nil)
 		end
 	end
 end

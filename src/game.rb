@@ -48,7 +48,7 @@ require_relative "character_selection"
 class Game
 	include FormatHelper
 	include InputHelper
-	attr_reader :board, :display, :player1, :player2, :main_menu, :winner
+	attr_reader :board, :display, :player1, :player2, :turn, :main_menu, :winner
 
 
 	def initialize(rows, columns, interactive=true)
@@ -135,7 +135,7 @@ class Game
 		update_display
 	end
 
-	def tally_wins
+	def tally_wins #Test
 		if @winner == nil
 			@player1.draw += 1
 			@player2.draw += 1
@@ -151,7 +151,7 @@ class Game
 	def post_game
 	end
 
-	def first_empty_space(pos)
+	def first_empty_space(pos) #Can maybe make part of board
 		pos = [@board.rows-1, pos[1]]
 		while @board.get_space(pos) and not @board.get_space(pos).empty?# || pos[0] < 0
 			pos = [pos[0]-1, pos[1]]
@@ -165,11 +165,11 @@ class Game
 		@winner = nil
 	end
 
-	def update_display
+	def update_display 
 		@display.child_loc(@board.format)
 	end
 
-	def change_turn
+	def change_turn #Test
 		@turn = @turn.object_id === @player1.object_id ? @player2 : @player1
 	end
 

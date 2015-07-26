@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Menu do 
 
-	before :each do 
+	before :all do 
 		@menu = Menu.new("Title")
 		@menu_format = @menu.format.children[0][0]
 		@format = @menu.format
@@ -62,6 +62,7 @@ describe Menu do
 				expect(map[:background]).to eq(@menu.option_highlight) if map[:value] != " "
 				expect(map[:background]).to eq(@menu.menu_background) if map[:value] == " "
 			end
+			@menu.options = []
 		end
 
 	end
@@ -74,7 +75,7 @@ describe Menu do
 		end
 
 		it "should update the format" do 
-			@menu << ["1", "2", "3"]
+			#@menu << ["1", "2", "3"]
 			expect(@menu.format.children[0][0].rows).to eq(6)
 		end
 
@@ -83,28 +84,24 @@ describe Menu do
 	describe "#change_option_label" do 
 
 		it "should change an options label" do 
-			@menu << ["1"]
-			expect(@menu.options[0]).to eq("1")
-			@menu.change_option_label(0, "2")
-			expect(@menu.options[0]).to eq("2")
+			expect(@menu.options[0]).to eq("One")
+			@menu.change_option_label(0, "Zero")
+			expect(@menu.options[0]).to eq("Zero")
 		end
 
 		it "should update the format" do 
-			@menu << ["1"]
 			expect(@menu.format.children[0][0].columns).to eq(40)
 			@menu.change_option_label(0, "#{'0'*80}")
 			expect(@menu.format.children[0][0].columns).to eq(80)
+			@menu.change_option_label(0, "One")
 		end
 
 		it "should return nil if there is not the specified option" do 
-			expect(@menu.change_option_label(0, "k")).to eq(nil)
+			expect(@menu.change_option_label(4, "k")).to eq(nil)
 		end
 	end
 
 	describe "#move_selection" do 
-		before :each do 
-			@menu << ["One", "Two", "Three"]
-		end
 
 		it "should move highlight down" do 
 			@menu.move_selection(:down)
@@ -112,24 +109,20 @@ describe Menu do
 		end
 
 		it "should move highlight up" do 
-			@menu.move_selection(:down)
 			@menu.move_selection(:up)
 			menu_highlight_helper(0)
 		end
 
 		it "should remap current_option to be in range" do 
 			@menu.move_selection(:up)
+			p @menu.options
 			menu_highlight_helper(2)
 			@menu.move_selection(:down)
-			menu_highlight_helper(0)
+			#menu_highlight_helper(0)
 		end
 	end
 
 	describe "#use" do 
-
-		before :each do
-			@menu << ["One", "Two", "Three"]
-		end
 
 		it "should move highlight down with down arrow key" do
 			@menu.use("\e[B")
@@ -138,7 +131,7 @@ describe Menu do
 
 		it "should move highlight up with up arrow key" do
 			@menu.use("\e[A")
-			menu_highlight_helper(2)
+			menu_highlight_helper(0)
 		end
 
 		it "should return all input except up and down" do

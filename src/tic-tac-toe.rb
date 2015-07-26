@@ -10,6 +10,8 @@ require_relative "game"
 =end
 
 class TicTacToe < Game
+	attr_accessor :to_win, :size, :winner
+
 
 	def initialize
 		@to_win = 3
@@ -24,7 +26,7 @@ class TicTacToe < Game
 			           "Adjust Row to Win: #{@to_win}"]
 	end
 
-	def update_display
+	def update_display 
 		board_loc = super
 		@display.set_direction([board_loc[2],0], [0,1], value: :" ")
 		@display.set_direction([2,0], [0,1], value: :" ")
@@ -42,21 +44,11 @@ class TicTacToe < Game
 		end
 	end
 
-	def menu_commands(input)	
+	def menu_commands(input)
 		case input
 		when "\e[C" then adjust_option(:right)
 		when "\e[D" then adjust_option(:left)
 		end 
-	end
-
-	def select_space
-		space = super
-		if space.empty?
-			space.alt_color = @turn.alt_color
-			space.set(value: @turn.setter, color: @turn.color)
-			@winner = @board.in_a_row(@to_win)
-			change_turn
-		end
 	end
 
 	def post_game
@@ -76,6 +68,16 @@ class TicTacToe < Game
 	def adjust_option(direction)
 		adjust_size(direction) if @main_menu.current_option == 3
 		adjust_win(direction) if @main_menu.current_option == 4
+	end
+
+	def select_space
+		space = super
+		if space.empty?
+			space.alt_color = @turn.alt_color
+			space.set(value: @turn.setter, color: @turn.color)
+			@winner = @board.in_a_row(@to_win)
+			change_turn
+		end
 	end
 
 	def adjust_size(direction)
