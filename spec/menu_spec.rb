@@ -75,7 +75,6 @@ describe Menu do
 		end
 
 		it "should update the format" do 
-			#@menu << ["1", "2", "3"]
 			expect(@menu.format.children[0][0].rows).to eq(6)
 		end
 
@@ -115,10 +114,8 @@ describe Menu do
 
 		it "should remap current_option to be in range" do 
 			@menu.move_selection(:up)
-			p @menu.options
 			menu_highlight_helper(2)
 			@menu.move_selection(:down)
-			#menu_highlight_helper(0)
 		end
 	end
 

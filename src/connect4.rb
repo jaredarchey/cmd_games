@@ -1,6 +1,8 @@
 require_relative "game"
 
 class Connect4 < Game
+	attr_reader :to_win	
+
 
 	def initialize
 		super(6, 7, "1D_R")

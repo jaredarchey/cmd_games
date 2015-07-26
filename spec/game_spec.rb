@@ -24,5 +24,9 @@ describe Game do
 		it "should have no winner" do 
 			expect(@g.winner).to eq(nil)
 		end
+
+		it "should title the menu with its class name" do 
+			expect(@g.main_menu.title).to eq(@g.class.to_s)
+		end
 	end
 end
