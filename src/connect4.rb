@@ -54,4 +54,4 @@ class Connect4 < Game
 	end
 end
 
-Connect4.new.begin
+#Connect4.new.begin

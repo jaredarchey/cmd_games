@@ -29,16 +29,14 @@ class Board
 		new_board
 	end
 
-	def use
-		input = read_char
-		#return input if @interactive == "string"
+	def use(test=nil)
+		input = test == nil ? read_char : test
 		case input
 		when "\e[A" then move_highlight(:up) if @interactive == "2D" || @interactive == "1D_C"
 		when "\e[B" then move_highlight(:down) if @interactive == "2D" || @interactive == "1D_C"
 		when "\e[C" then move_highlight(:right) if @interactive == "2D" || @interactive == "1D_R"
 		when "\e[D" then move_highlight(:left) if @interactive == "2D" || @interactive == "1D_R"
 		when "\u0003" then exit 
-		#when "\u0012" then reset
 		else return input
 		end
 		nil
@@ -108,6 +106,7 @@ class Board
 	end
 
 	def current_space(pos=nil)
+		return nil if @current_space == nil
 		pos ? @current_space.to_a : get_space(@current_space.to_a)
 	end
 

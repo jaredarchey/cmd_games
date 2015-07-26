@@ -2,6 +2,13 @@ require_relative "game"
 
 #          Need to test methods other than begin and play with rspec
 
+=begin
+	                             Tic Tac Toe
+    #######################################################################
+	
+    #######################################################################
+=end
+
 class TicTacToe < Game
 
 	def initialize
@@ -95,5 +102,5 @@ class TicTacToe < Game
 	end
 end
 
-t = TicTacToe.new
-t.begin
+#t = TicTacToe.new
+#t.begin

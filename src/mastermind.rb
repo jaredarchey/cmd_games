@@ -139,4 +139,4 @@ class MasterMind < Game
 	end
 end
 
-MasterMind.new.begin
+#MasterMind.new.begin

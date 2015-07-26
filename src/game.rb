@@ -48,6 +48,8 @@ require_relative "character_selection"
 class Game
 	include FormatHelper
 	include InputHelper
+	attr_reader :board, :display, :player1, :player2, :main_menu, :winner
+
 
 	def initialize(rows, columns, interactive=true)
 		@board = Board.new(rows, columns, interactive)

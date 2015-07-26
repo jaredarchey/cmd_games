@@ -135,4 +135,4 @@ class Hangman < Game
 	end
 end
 
-Hangman.new.begin
+#Hangman.new.begin

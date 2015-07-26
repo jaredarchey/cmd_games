@@ -183,11 +183,134 @@ describe Board  do
 			expect(@b.in_a_row(4)).to eq(nil)
 		end
 	end
-end
 
-def board_highlight_helper(board, pos)
-	board.each_space do |space, space_pos|
-		space_pos == pos ? space.format.each {|format| expect(format[:background]).to eq(:white)} : \
-				           space.format.each {|format| expect(format[:background]).to eq(:black)}
+	describe "#current_space" do 
+		before :each do 
+			@b = Board.new(3, 3, "2D")
+		end
+
+		it "should return the space by default" do 
+			expect(@b.current_space).to eq(@b.board[0][0])
+		end
+
+		it "should optionally return the spaces position" do
+			expect(@b.current_space(true)).to eq([0,0])
+		end
+
+		it "should return nil if board is in string mode" do 
+			b = Board.new(3, 3, "string")
+			expect(b.current_space).to eq(nil)
+		end
+	end
+
+	describe "#use" do 
+
+		context "2D" do
+			before :each do
+				@b = Board.new(3, 3, "2D")
+			end
+
+			it "should move up" do
+				expect(@b.use("\e[A")).to eq(nil)
+				board_highlight_helper(@b, [2, 0])
+			end
+
+			it "should move down" do
+				expect(@b.use("\e[B")).to eq(nil)
+				board_highlight_helper(@b, [1, 0])
+			end
+
+			it "should move right" do
+				expect(@b.use("\e[C")).to eq(nil)
+				board_highlight_helper(@b, [0, 1])
+			end
+
+			it "should move left" do
+				expect(@b.use("\e[D")).to eq(nil)
+				board_highlight_helper(@b, [0, 2])
+			end
+
+			it "should return input if its not arrows" do 
+				expect(@b.use('q')).to eq('q')
+			end
+		end
+
+		context("1D_R") do
+			before :each do
+				@b = Board.new(3, 3, "1D_R")
+			end
+
+			it "should move right" do 
+				expect(@b.use("\e[C")).to eq(nil)
+				board_highlight_helper(@b, [0,1])
+			end
+
+			it "should move left" do 
+				expect(@b.use("\e[D")).to eq(nil)
+				board_highlight_helper(@b, [0,2])
+			end
+
+			it "should not move up or down" do 
+				expect(@b.use("\e[A")).to eq(nil)
+				board_highlight_helper(@b, [0,0])
+				expect(@b.use("\e[B")).to eq(nil)
+				board_highlight_helper(@b, [0,0])
+			end
+
+			it "should return char input" do 
+				expect(@b.use('q')).to eq('q')
+			end
+		end
+
+		context("1D_C") do
+			before :each do
+				@b = Board.new(3, 3, "1D_C")
+			end
+
+			it "should move up" do 
+				expect(@b.use("\e[A")).to eq(nil)
+				board_highlight_helper(@b, [2,0])
+			end
+
+			it "should move down" do 
+				expect(@b.use("\e[B")).to eq(nil)
+				board_highlight_helper(@b, [1,0])
+			end
+
+			it "should not move left or right" do 
+				expect(@b.use("\e[C")).to eq(nil)
+				board_highlight_helper(@b, [0,0])
+				expect(@b.use("\e[D")).to eq(nil)
+				board_highlight_helper(@b, [0,0])
+			end
+
+			it "should return char input" do 
+				expect(@b.use('q')).to eq('q')
+			end
+		end
+
+		context("string") do 
+			before :each do
+				@b = Board.new(3, 3, "string")
+			end
+
+			it "should not highlight the board" do
+				expect(@b.current_space).to eq(nil)
+			end
+		end
+	end
+
+	describe "#full" do 
+		before :each do 
+			@full = @b.full
+		end
+
+		it "should make format fit the console" do 
+			expect([@full.rows, @full.columns]).to eq(IO.console.winsize)
+		end
+
+		it "should have the board format as a child" do 
+			expect(@full.children[0][0]).to eq(@b.format)
+		end
 	end
 end
