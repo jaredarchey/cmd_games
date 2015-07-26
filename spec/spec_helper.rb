@@ -13,6 +13,7 @@ require_relative "../src/tic-tac-toe"
 require_relative "../src/connect4"
 require_relative "../src/mastermind"
 require_relative "../src/hangman"
+require_relative "../src/chess"
 
 def board_highlight_helper(board, pos)
 	board.each_space do |space, space_pos|

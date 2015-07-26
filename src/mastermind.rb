@@ -1,22 +1,27 @@
 require_relative "game"
 
 class MasterMind < Game
+	attr_reader :length, :attempts, :guess, :correct, :history, :code, :repeats
 
 	def initialize
 		@length = 4
 		@attempts = 12
+
 		@guess = ''
 		@correct = 0
 		@history = []
-		@code = random_code
+		@repeats = true
+		@code = random_code(@repeats)
+
 		super(@attempts, @length, "string")
 		@main_menu << ["Play Game",  \
 			           "Create Code", \
 		               "Adjust Length | current: #{@length}",\
-		               "Adjust Attempts | current: #{@attempts}"]
+		               "Adjust Attempts | current: #{@attempts}", \
+		           	   "Allow Repeats | true"]
 	end
 
-	def update_display
+	def update_display #This is costing ALOT of speed, I only need to update when play is called
 		@options_fill = {r: :red, o: :light_red, y: :yellow, g: :green, b: :cyan, i: :blue, v: :magenta}
 		options = Board.new(1,7,"string")
 		index = 0
@@ -30,12 +35,12 @@ class MasterMind < Game
 		option_pos = [board_loc[2], (@display.columns-options.format.columns)/2]
 		f.add_child(option_pos, options.format)
 		@display = f
-		@display.set_direction([board_loc[2]+4,0], [0,1], value: :" ", background: :white)
-		@display.insert_string([board_loc[2]+4,0], value: "Guess the secret code", background: :yellow, color: :red)
-		@display.set_direction([board_loc[2]+5,0], [0,1], value: :" ", background: :white)
-		@display.insert_string([board_loc[2]+5,0], value: "Last guess had #{@correct} correct", background: :yellow, color: :red)
-		@display.set_direction([board_loc[2]+6,0], [0,1], value: :" ", background: :white)
-		@display.insert_string([board_loc[2]+6,0], value: @guess, background: :red, color: :white)
+		f.set_direction([board_loc[2]+4,0], [0,1], value: :" ", background: :white)
+		f.insert_string([board_loc[2]+4,0], value: "Guess the secret code", background: :yellow, color: :red)
+		f.set_direction([board_loc[2]+5,0], [0,1], value: :" ", background: :white)
+		f.insert_string([board_loc[2]+5,0], value: "Last guess had #{@correct} correct", background: :yellow, color: :red)
+		f.set_direction([board_loc[2]+6,0], [0,1], value: :" ", background: :white)
+		f.insert_string([board_loc[2]+6,0], value: @guess, background: :red, color: :white)
 	end
 
 	def menu_selection
@@ -55,6 +60,25 @@ class MasterMind < Game
 	def adjust_option(direction)
 		adjust_length(direction)   if @main_menu.current_option == 2
 		adjust_attempts(direction) if @main_menu.current_option == 3
+		adjust_repeats if @main_menu.current_option == 4
+	end
+
+	def post_game
+		display = full_screen(Formatter.new(1,1,:white), :white)
+		summary = Formatter.new(@history.length + 4, display.columns, :white)
+		string = @correct == @length ? "Congratulations, you guessed the code #{@code}" : \
+		                               "HAHAHAHA, you couldnt guess the code #{@code}"
+		summary.insert_string([0,0], value: string, background: :green)
+		summary.insert_string([1,0], value: "Guess History", background: :green)
+		@history.each_index do |i|
+			summary.insert_string([i+3,0], value: "Guess #{i+1}: #{@history[i]}", color: :black)
+		end
+		display.add_child(:center, summary)
+		display.insert_string([display.child_loc(summary)[2]+2, 0], value: "Play Again? y/n", color: :black)
+		puts display.to_s
+		@history = []
+		@correct = 0
+		@code = random_code
 	end
 
 	def adjust_length(direction)
@@ -70,10 +94,16 @@ class MasterMind < Game
 	def adjust_attempts(direction)
 		@attempts += 1 if direction == :right
 		@attempts -= 1 if direction == :left
-		@attempts = 1 if @attempts < 1
+		@attempts = 4 if @attempts < 4
 		@attempts = 15 if @attempts > 15
 		resize
 		@main_menu.change_option_label(3, "Adjust Attempts | current: #{@attempts}")
+	end
+
+	def adjust_repeats
+		@repeats = !@repeats
+		@main_menu.change_option_label(4, "Allow Repeats | #{@repeats.to_s}")
+		@code = random_code(@repeats)
 	end
 
 	def get_str(char) #This is where the game is played
@@ -95,33 +125,14 @@ class MasterMind < Game
 		end
 	end
 
-	def post_game
-		display = full_screen(Formatter.new(1,1,:white), :white)
-		summary = Formatter.new(@history.length + 4, display.columns, :white)
-		string = @correct == @length ? "Congratulations, you guessed the code #{@code}" : \
-		                               "HAHAHAHA, you couldnt guess the code #{@code}"
-		summary.insert_string([0,0], value: string, background: :green)
-		summary.insert_string([1,0], value: "Guess History", background: :green)
-		@history.each_index do |i|
-			summary.insert_string([i+3,0], value: "Guess #{i+1}: #{@history[i]}", color: :black)
-		end
-		display.add_child(:center, summary)
-		display.insert_string([display.child_loc(summary)[2]+2, 0], value: "Play Again? y/n", color: :black)
-		puts display.to_s
-		@history = []
-		@correct = 0
-		@code = random_code
-	end
-
-	def create_code #Can change name player to do this only difference is prompt
-		str = user_string("Enter a #{@length} digit code")
-		create_code if (str.chars.select {|char| 'roygbiv'.include?(char)}).length != @length
+	def create_code(test=nil)
+		str = test == nil ? user_string("Enter a #{@length} digit code") : test
+		create_code(test) if (str.chars.select {|char| 'roygbiv'.include?(char)}).length != @length
 		@code = str
 	end
 
 	def resize
 		@board.resize(@attempts, @length)
-		update_display
 	end
 
 	def random_code(repeats=true)

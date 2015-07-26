@@ -1,6 +1,7 @@
 require_relative "game"
 
 class Hangman < Game
+	attr_reader :gallow, :length, :guess_history, :incorrect, :word
 
 	def initialize
 		gallows
@@ -65,11 +66,26 @@ class Hangman < Game
 		adjust_max_length(direction) if @main_menu.current_option == 3
 	end
 
+	def post_game
+		display = full_screen(@gallow, :cyan)
+		string = @winner == 'dead' ? "You couldnt guess the word | #{@word}" : \
+		                             "Congratulations, you guessed the word | #{@word}"
+		display.insert_string([display.child_loc(@gallow)[2]+1,0], value: string, color: :black)
+		display.insert_string([display.child_loc(@gallow)[2]+3,0], value: "Play Again? y/n", color: :black)
+		
+		puts display.to_s
+		random_word
+		@guess_history = []
+		@incorrect = 0 
+		hang
+	end
+
 	def adjust_min_length(direction)
 		@length[0] += 1 if direction == :right
 		@length[0] -= 1 if direction == :left
 		@length[0] = @length[1]-1 if @length[0] >= @length[1]
 		@length[0] = 2 if @length[0] < 2
+		random_word
 		@main_menu.change_option_label(2, "Adjust min length | current: #{@length[0]}")
 	end
 
@@ -78,12 +94,13 @@ class Hangman < Game
 		@length[1] -= 1 if direction == :left
 		@length[1] = @length[0] + 1 if @length[1] <= @length[0]
 		@length[1] = 10 if @length[1] > 10
+		random_word
 		@main_menu.change_option_label(3, "Adjust max length | current: #{@length[1]}")
 	end
 
-	def create_word
-		str = user_string("Enter a word between #{@length[0]} and #{@length[1]} characters")
-		create_word if !str.length.between?(*@length)
+	def create_word(test=nil)
+		str = test == nil ? user_string("Enter a word between #{@length[0]} and #{@length[1]} characters") : test
+		create_word if !str.length.between?(*@length) && test == nil
 		@word = str
 		resize
 	end
@@ -113,21 +130,6 @@ class Hangman < Game
 	def resize
 		@board.resize(1, @word.length)
 		@display = @board.full(:light_magenta)
-		update_display
-	end
-
-	def post_game
-		display = full_screen(@gallow, :cyan)
-		string = @winner == 'dead' ? "You couldnt guess the word | #{@word}" : \
-		                             "Congratulations, you guessed the word | #{@word}"
-		display.insert_string([display.child_loc(@gallow)[2]+1,0], value: string, color: :black)
-		display.insert_string([display.child_loc(@gallow)[2]+3,0], value: "Play Again? y/n", color: :black)
-		
-		puts display.to_s
-		random_word
-		@guess_history = []
-		@incorrect = 0 
-		hang
 	end
 
 	def reset

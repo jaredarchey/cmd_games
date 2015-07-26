@@ -64,8 +64,10 @@ class Game
 
 	def begin
 		begin
+
 			@main_menu.show
 			input = @main_menu.use
+
 			case input
 			when 'q' then exit
 			when 'l' then @main_menu.load(self.class.to_s)
@@ -73,6 +75,7 @@ class Game
 			when "\r" then menu_selection
 			else menu_commands(input) 
 			end
+
 		end until input == 'b'
 	end
 
@@ -85,6 +88,7 @@ class Game
 	def play(saved=false)
 		reset if not saved
 		begin
+			
 			update_display
 			puts @display.to_s
 			input = @board.use
